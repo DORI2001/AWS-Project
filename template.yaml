@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   mailing-list
@@ -10,9 +10,8 @@ Globals:
     Timeout: 3
 
 Resources:
-  AWS: Add Debug Configuration
   ViewGroupsFunction:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: view_groups/
       Handler: app.lambda_handler
