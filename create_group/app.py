@@ -18,6 +18,6 @@ def lambda_handler(event, context):
     
     item = {"PK":f"GROUP#{group_id}", "SK":f"METADATA#", "description": group_description, "name": group_name}
     table.put_item(Item=item)
-    
-    return {"statusCode": 200, "headers": {"Access-Control-Allow-Origin": "*"}, "body": json.dumps(item)}
+    response = {"id": group_id, "name": group_name, "description": group_description}
+    return {"statusCode": 200, "headers": {"Access-Control-Allow-Origin": "*"}, "body": json.dumps(response)}
          
