@@ -13,4 +13,4 @@ def lambda_handler(event, context):
     group_item = {"PK": f"GROUP#{group_id}", "SK":f"USER#{user_email}"} 
     table.put_item(Item=user_item)
     table.put_item(Item=group_item)
-    return {"statusCode": 200, "body": json.dumps({"user": user_item, "group": group_item})}
+    return {"statusCode": 200, "headers": {"Access-Control-Allow-Origin": "*"}, "body": json.dumps({"user": user_item, "group": group_item})}

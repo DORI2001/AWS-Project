@@ -6,8 +6,33 @@ Description: >
 Globals:
   Function:
     Timeout: 3
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'Content-Type,Authorization'"
+      AllowOrigin: "'*'"
 
 Resources:
+  AuthorizeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: authorize/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          SECRET_ID: mailing-list-admin-password
+          USER: admin
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: arn:aws:secretsmanager:eu-north-1:226732419071:secret:mailing-list-admin-password-HCpTFM
+      Events:
+        MailingList:
+          Type: Api
+          Properties:
+            Path: /authorize
+            Method: get
+
   JoinGroupFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -97,11 +122,11 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref GroupsSubscribersTable
         - SESCrudPolicy:
-            IdentityName: <verified email>
+            IdentityName: dor3382@gmail.com
       Environment:
         Variables:
           GROUPS_SUBSCRIBERS_TABLE_NAME: !Ref GroupsSubscribersTable
-          VERIFIED_EMAIL: <verified email>
+          VERIFIED_EMAIL: dor3382@gmail.com
       Events:
         SQSEvent:
           Type: SQS
