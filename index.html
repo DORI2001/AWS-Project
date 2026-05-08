@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MailNet — Mailing Groups</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #0d1117;
+        --surface: #161b22;
+        --surface2: #21262d;
+        --border: #30363d;
+        --accent: #58a6ff;
+        --accent2: #3fb950;
+        --danger: #f85149;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --radius: 10px;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      /* NAV */
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px;
+        height: 60px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .logo {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--accent);
+        letter-spacing: -0.5px;
+      }
+      .logo span { color: var(--text); }
+
+      /* PAGES */
+      .page { display: none; }
+      .page.active { display: block; }
+
+      /* CONTAINER */
+      .container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 24px;
+      }
+
+      /* PAGE HEADER */
+      .page-header {
+        margin-bottom: 28px;
+      }
+      .page-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .page-header p {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      /* TABLE */
+      .table-wrapper {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      table { width: 100%; border-collapse: collapse; }
+      thead { background: var(--surface2); }
+      th {
+        padding: 12px 20px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        border-bottom: 1px solid var(--border);
+      }
+      td {
+        padding: 14px 20px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:last-child td { border-bottom: none; }
+      tr:hover td { background: var(--surface2); }
+      a.group-link {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 500;
+      }
+      a.group-link:hover { text-decoration: underline; }
+      .badge {
+        display: inline-block;
+        background: rgba(88,166,255,0.1);
+        color: var(--accent);
+        border: 1px solid rgba(88,166,255,0.3);
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 10px;
+      }
+
+      /* SUBSCRIBE BOX */
+      #input-container {
+        display: none;
+        margin-top: 20px;
+        background: var(--surface);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+      #input-container p {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .input-row {
+        display: flex;
+        gap: 10px;
+      }
+
+      /* INPUTS */
+      input, textarea, select {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        padding: 10px 14px;
+        outline: none;
+        transition: border-color 0.2s;
+        width: 100%;
+      }
+      input:focus, textarea:focus, select:focus {
+        border-color: var(--accent);
+      }
+      select option { background: var(--surface2); }
+      textarea { resize: vertical; }
+
+      /* BUTTONS */
+      button {
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        padding: 10px 20px;
+        transition: opacity 0.2s, transform 0.1s;
+      }
+      button:hover { opacity: 0.85; }
+      button:active { transform: scale(0.98); }
+
+      .btn-primary { background: var(--accent); color: #0d1117; }
+      .btn-success { background: var(--accent2); color: #0d1117; }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+      .btn-ghost:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+
+      /* ADMIN BUTTON ROW */
+      .top-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+      }
+
+      /* LOGIN PAGE */
+      #page2 {
+        min-height: 100vh;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg);
+      }
+      #page2.active {
+        display: flex;
+      }
+      .login-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 40px;
+        width: 100%;
+        max-width: 400px;
+      }
+      .login-card h2 {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .login-card p {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 28px;
+      }
+      .form-group {
+        margin-bottom: 16px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .login-card .btn-primary {
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+        font-size: 15px;
+      }
+      .login-footer {
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      /* ADMIN DASHBOARD */
+      .admin-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 28px;
+      }
+      @media (max-width: 640px) {
+        .admin-grid { grid-template-columns: 1fr; }
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+      }
+      .card h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+      }
+      .card .form-group { margin-bottom: 14px; }
+      .card button { margin-top: 4px; }
+
+      /* TOAST */
+      #toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 20px;
+        font-size: 14px;
+        display: none;
+        z-index: 100;
+        animation: slideIn 0.3s ease;
+      }
+      #toast.success { border-color: var(--accent2); color: var(--accent2); }
+      #toast.error { border-color: var(--danger); color: var(--danger); }
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+  </head>
+  <body>
+
+    <nav>
+      <div class="logo">Mail<span>Net</span></div>
+      <button class="btn-ghost" onclick="changePage('page2')" id="nav-admin-btn">Admin</button>
+    </nav>
+
+    <!-- PAGE 1: Groups -->
+    <div class="page active" id="page1">
+      <div class="container">
+        <div class="page-header">
+          <h1>Mailing Groups</h1>
+          <p>Click a group to subscribe your email address.</p>
+        </div>
+
+        <div class="table-wrapper">
+          <table id="groups-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Group</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+
+        <div id="input-container">
+          <p>Enter your email to subscribe to <strong id="selected-group-name"></strong></p>
+          <div class="input-row">
+            <input type="email" id="email-input" placeholder="your@email.com" />
+            <button id="add-button" class="btn-primary" style="white-space:nowrap;">Subscribe</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: Login -->
+    <div class="page" id="page2">
+      <div class="login-card">
+        <h2>Admin Login</h2>
+        <p>Sign in to manage groups and send messages.</p>
+        <form onsubmit="return login(event)">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="admin" required />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn-primary">Sign In</button>
+        </form>
+        <div class="login-footer">
+          <button class="btn-ghost" onclick="changePage('page1')">← Back to Groups</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: Admin Dashboard -->
+    <div class="page" id="page3">
+      <div class="container">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h1>Admin Dashboard</h1>
+            <p>Send messages to groups or create new ones.</p>
+          </div>
+          <button class="btn-ghost" onclick="changePage('page1')">← Back</button>
+        </div>
+
+        <div class="admin-grid">
+          <div class="card">
+            <h3>Send Message</h3>
+            <div class="form-group">
+              <label for="group">Select Group</label>
+              <select id="group" name="group" required></select>
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="5" placeholder="Write your message here..."></textarea>
+            </div>
+            <button onclick="sendMessage()" class="btn-primary">Send to Subscribers</button>
+          </div>
+
+          <div class="card">
+            <h3>Create Group</h3>
+            <div class="form-group">
+              <label for="group-name">Group Name</label>
+              <input type="text" id="group-name" placeholder="e.g. Tech News" />
+            </div>
+            <div class="form-group">
+              <label for="group-description">Description</label>
+              <input type="text" id="group-description" placeholder="e.g. Latest tech updates" />
+            </div>
+            <button onclick="createGroup()" class="btn-success">Create Group</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+
+    <script>
+      const website = "https://pz3d8f9wva.execute-api.eu-north-1.amazonaws.com";
+      let username = "";
+      let password = "";
+
+      function showToast(msg, type = "success") {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = type;
+        t.style.display = "block";
+        setTimeout(() => { t.style.display = "none"; }, 3000);
+      }
+
+      function changePage(pageId) {
+        document.querySelector(".page.active").classList.remove("active");
+        document.getElementById(pageId).classList.add("active");
+      }
+
+      async function createGroup() {
+        const name = document.getElementById("group-name").value;
+        const description = document.getElementById("group-description").value;
+        if (!name || !description) { showToast("Please fill in both fields.", "error"); return; }
+        try {
+          const response = await fetch(`${website}/Prod/groups`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Basic " + btoa(username + ":" + password) },
+            body: JSON.stringify({ name, description }),
+          });
+          if (response.ok) {
+            const group = await response.json();
+            showToast(`Group "${group.name}" created!`);
+            document.getElementById("group-name").value = "";
+            document.getElementById("group-description").value = "";
+            addGroupToTable(group, document.querySelectorAll("#groups-table tr").length - 1);
+            addGroupToDropDown(group);
+          } else {
+            const err = await response.json();
+            showToast("Error: " + (err.description || "Unknown error"), "error");
+          }
+        } catch (e) { showToast("An error occurred.", "error"); }
+      }
+
+      async function sendMessage() {
+        const selectedGroup = groupDropdown.value;
+        const message = document.getElementById("message").value;
+        try {
+          const response = await fetch(`${website}/Prod/groups/${selectedGroup}/post`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Basic " + btoa(username + ":" + password) },
+            body: JSON.stringify({ post: message }),
+          });
+          if (response.ok) {
+            showToast("Message sent successfully!");
+            document.getElementById("message").value = "";
+          } else {
+            showToast("Failed to send message.", "error");
+          }
+        } catch (e) { showToast("An error occurred.", "error"); }
+      }
+
+      async function login(e) {
+        e.preventDefault();
+        username = document.getElementById("username").value;
+        password = document.getElementById("password").value;
+        try {
+          const response = await fetch(`${website}/Prod/authorize`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json", Authorization: "Basic " + btoa(username + ":" + password) },
+          });
+          if (response.ok) {
+            changePage("page3");
+          } else {
+            showToast("Invalid credentials.", "error");
+          }
+        } catch (e) { showToast("An error occurred.", "error"); }
+        return false;
+      }
+
+      let selectedGroupId = null;
+      const groupsTable = document.querySelector("#groups-table");
+      const inputContainer = document.querySelector("#input-container");
+      const groupDropdown = document.getElementById("group");
+
+      fetch(`${website}/Prod/groups`)
+        .then(r => r.json())
+        .then(data => { data.forEach((group, key) => { addGroupToTable(group, key); addGroupToDropDown(group); }); });
+
+      const addGroupToDropDown = (group) => {
+        const option = document.createElement("option");
+        option.value = group.id;
+        option.textContent = group.name;
+        groupDropdown.appendChild(option);
+      };
+
+      const addGroupToTable = (group, key) => {
+        const tbody = groupsTable.querySelector("tbody") || groupsTable;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><span class="badge">${key + 1}</span></td>
+          <td><a href="#" class="group-link" data-id="${group.id}" data-name="${group.name}">${group.name}</a></td>
+          <td style="color:var(--muted)">${group.description}</td>`;
+        tbody.appendChild(row);
+      };
+
+      document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("group-link")) {
+          e.preventDefault();
+          selectedGroupId = e.target.dataset.id;
+          document.getElementById("selected-group-name").textContent = e.target.dataset.name;
+          inputContainer.style.display = "block";
+        }
+      });
+
+      document.querySelector("#add-button").addEventListener("click", () => {
+        const emailInput = document.querySelector("#email-input");
+        const email = emailInput.value;
+        if (selectedGroupId && email && emailInput.checkValidity()) {
+          fetch(`${website}/Prod/groups/${selectedGroupId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          }).then(r => {
+            if (r.ok) {
+              showToast("Subscribed successfully!");
+              inputContainer.style.display = "none";
+              emailInput.value = "";
+            } else {
+              showToast("Failed to subscribe.", "error");
+            }
+          }).catch(() => showToast("An error occurred.", "error"));
+        } else if (!emailInput.checkValidity()) {
+          showToast("Please enter a valid email.", "error");
+        } else {
+          showToast("Please select a group first.", "error");
+        }
+      });
+    </script>
+  </body>
+</html>
