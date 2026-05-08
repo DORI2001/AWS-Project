@@ -381,6 +381,15 @@
             </div>
             <button onclick="createGroup()" class="btn-success">Create Group</button>
           </div>
+
+          <div class="card" style="border-color: rgba(248,81,73,0.3);">
+            <h3 style="color:var(--danger);">Delete Group</h3>
+            <div class="form-group">
+              <label for="group-delete">Select Group</label>
+              <select id="group-delete" name="group-delete" required></select>
+            </div>
+            <button onclick="deleteGroup()" style="background:var(--danger);color:#fff;">Delete Group</button>
+          </div>
         </div>
       </div>
     </div>
@@ -404,6 +413,35 @@
       function changePage(pageId) {
         document.querySelector(".page.active").classList.remove("active");
         document.getElementById(pageId).classList.add("active");
+      }
+
+      async function deleteGroup() {
+        const groupId = document.getElementById("group-delete").value;
+        const groupName = document.getElementById("group-delete").selectedOptions[0].textContent;
+        if (!confirm(`Are you sure you want to delete "${groupName}"? This will remove all subscribers too.`)) return;
+        try {
+          const response = await fetch(`${website}/Prod/groups/${groupId}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json", Authorization: "Basic " + btoa(username + ":" + password) },
+          });
+          if (response.ok) {
+            showToast(`Group "${groupName}" deleted.`);
+            removeGroupFromUI(groupId);
+          } else {
+            showToast("Failed to delete group.", "error");
+          }
+        } catch (e) { showToast("An error occurred.", "error"); }
+      }
+
+      function removeGroupFromUI(groupId) {
+        // Remove from groups table
+        document.querySelectorAll(".group-link").forEach(link => {
+          if (link.dataset.id === groupId) link.closest("tr").remove();
+        });
+        // Remove from all dropdowns
+        document.querySelectorAll("option").forEach(opt => {
+          if (opt.value === groupId) opt.remove();
+        });
       }
 
       async function createGroup() {
@@ -476,10 +514,12 @@
         .then(data => { data.forEach((group, key) => { addGroupToTable(group, key); addGroupToDropDown(group); }); });
 
       const addGroupToDropDown = (group) => {
-        const option = document.createElement("option");
-        option.value = group.id;
-        option.textContent = group.name;
-        groupDropdown.appendChild(option);
+        [groupDropdown, document.getElementById("group-delete")].forEach(select => {
+          const option = document.createElement("option");
+          option.value = group.id;
+          option.textContent = group.name;
+          select.appendChild(option);
+        });
       };
 
       const addGroupToTable = (group, key) => {

@@ -13,6 +13,25 @@ Globals:
       AllowOrigin: "'*'"
 
 Resources:
+  DeleteGroupFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_group/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          GROUPS_SUBSCRIBERS_TABLE_NAME: !Ref GroupsSubscribersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GroupsSubscribersTable
+      Events:
+        MailingList:
+          Type: Api
+          Properties:
+            Path: /groups/{group-id}
+            Method: delete
+
   AuthorizeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -184,7 +203,32 @@ Resources:
       Queues:
         - !Ref SendMessagesQueue
 
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      WebsiteConfiguration:
+        IndexDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${WebsiteBucket.Arn}/*"
+
 Outputs:
   ViewGroupsApi:
     Description: "API Gateway endpoint URL for Prod stage for ViewGroupsFunction function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/groups/"
+  WebsiteURL:
+    Description: "Frontend website URL"
+    Value: !GetAtt WebsiteBucket.WebsiteURL
