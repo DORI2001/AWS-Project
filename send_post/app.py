@@ -22,10 +22,13 @@ def lambda_handler(event, context):
     group_sk = "METADATA#"
     response = table.query(KeyConditionExpression=(Key('PK').eq(group_pk) & Key('SK').begins_with(group_sk)))
     if len(response["Items"]) == 0:
-        # Group does not exist
-        err_message = f"Group {group_id} not found"
-        return {"statusCode": 404, "body": json.dumps({"error": err_message})}
-    
+        return {"statusCode": 404, "headers": {"Access-Control-Allow-Origin": "*"}, "body": json.dumps({"error": f"Group {group_id} not found"})}
+
+    # Check that group has subscribers
+    subscribers = table.query(KeyConditionExpression=(Key('PK').eq(group_pk) & Key('SK').begins_with("USER#")))
+    if len(subscribers["Items"]) == 0:
+        return {"statusCode": 400, "headers": {"Access-Control-Allow-Origin": "*"}, "body": json.dumps({"error": "no_subscribers"})}
+
     now = datetime.now()
     date_folder = now.strftime("%Y/%m/%d")
     message_details["group_id"] = group_id

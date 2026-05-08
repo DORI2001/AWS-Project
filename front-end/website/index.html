@@ -481,7 +481,12 @@
             showToast("Message sent successfully!");
             document.getElementById("message").value = "";
           } else {
-            showToast("Failed to send message.", "error");
+            const err = await response.json();
+            if (err.error === "no_subscribers") {
+              showToast("This group has no subscribers yet. Add subscribers before sending.", "error");
+            } else {
+              showToast("Failed to send message.", "error");
+            }
           }
         } catch (e) { showToast("An error occurred.", "error"); }
       }
