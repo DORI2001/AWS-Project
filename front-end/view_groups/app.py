@@ -14,7 +14,7 @@ def lambda_handler(event, context):
     groups = []
     for item in items:
         group = {
-            "id": item["PK"],
+            "id": item["PK"].split("#")[1],
             "name": item["name"],
             "description": item["description"]
         }
@@ -23,5 +23,10 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
+        "headers": {
+            "Access-Control-Allow-Headers" : "Content-Type",
+            "Access-Control-Allow-Origin": "*", 
+            "Access-Control-Allow-Methods": "GET"
+        },
         "body": json.dumps(groups)
     }
